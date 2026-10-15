@@ -1,0 +1,11 @@
+# Build output
+LocalShot.app/
+
+# Icon intermediates (regenerable: swift make_icon.swift)
+AppIcon.iconset/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
