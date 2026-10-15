@@ -1,6 +1,11 @@
 # Build output
 LocalShot.app/
 
+# Xcode builds & user state
+xbuild/
+xcuserdata/
+*.xcuserdatad/
+
 # Icon intermediates (regenerable: swift make_icon.swift)
 AppIcon.iconset/
 

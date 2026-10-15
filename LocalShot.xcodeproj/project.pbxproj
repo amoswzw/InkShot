@@ -1,0 +1,212 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	objectVersion = 56;
+	classes = {
+	};
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A100000000000000000000001 /* LocalShot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000000001 /* LocalShot.swift */; };
+		A100000000000000000000002 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = A200000000000000000000004 /* AppIcon.icns */; };
+		A100000000000000000000003 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000000005 /* main.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A200000000000000000000001 /* LocalShot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalShot.swift; sourceTree = "<group>"; };
+		A200000000000000000000002 /* LocalShot-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "LocalShot-Info.plist"; sourceTree = "<group>"; };
+		A200000000000000000000003 /* LocalShot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LocalShot.entitlements; sourceTree = "<group>"; };
+		A200000000000000000000004 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
+		A200000000000000000000005 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		A200000000000000000000006 /* LocalShot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LocalShot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		A300000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				A200000000000000000000005 /* main.swift */,
+				A200000000000000000000001 /* LocalShot.swift */,
+				A200000000000000000000002 /* LocalShot-Info.plist */,
+				A200000000000000000000003 /* LocalShot.entitlements */,
+				A200000000000000000000000004 /* AppIcon.icns */,
+				A300000000000000000000002 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A300000000000000000000002 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A200000000000000000000006 /* LocalShot.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A400000000000000000000001 /* LocalShot */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A500000000000000000000002 /* Build configuration list for PBXNativeTarget "LocalShot" */;
+			buildPhases = (
+				A600000000000000000000001 /* Sources */,
+				A600000000000000000000002 /* Resources */,
+			);
+			dependencies = (
+			);
+			name = LocalShot;
+			productName = LocalShot;
+			productReference = A200000000000000000000006 /* LocalShot.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A700000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					A400000000000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = A500000000000000000000001 /* Build configuration list for PBXProject "LocalShot" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A300000000000000000000001;
+			productRefGroup = A300000000000000000000002 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A400000000000000000000001 /* LocalShot */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A600000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A100000000000000000000002 /* AppIcon.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A600000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A100000000000000000000003 /* main.swift in Sources */,
+				A100000000000000000000001 /* LocalShot.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A800000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		A800000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		A800000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				/* Debug runs WITHOUT the sandbox so the not-yet-migrated legacy
+				   paths (region capture, recording via /usr/sbin/screencapture)
+				   keep working during development. */
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "LocalShot-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1;
+				PRODUCT_BUNDLE_IDENTIFIER = local.localshot;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A800000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				/* Release = the Mac App Store reality: sandboxed, so only the
+				   ScreenCaptureKit paths work until migration is finished. */
+				CODE_SIGN_ENTITLEMENTS = LocalShot.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "LocalShot-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1;
+				PRODUCT_BUNDLE_IDENTIFIER = local.localshot;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A500000000000000000000001 /* Build configuration list for PBXProject "LocalShot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A800000000000000000000001 /* Debug */,
+				A800000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A500000000000000000000002 /* Build configuration list for PBXNativeTarget "LocalShot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A800000000000000000000003 /* Debug */,
+				A800000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A700000000000000000000001 /* Project object */;
+}

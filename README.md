@@ -28,10 +28,27 @@ telemetry, no accounts, no cloud. Your screen never leaves your Mac.
 Requirements: macOS 12+ and the Xcode command line tools. Nothing else — no
 dependencies, no network access at build time either.
 
+Quick build (no sandbox, everything works):
+
 ```sh
 ./build.sh
 open LocalShot.app
 ```
+
+Xcode project (the Mac App Store track):
+
+```sh
+open LocalShot.xcodeproj      # or: xcodebuild -scheme LocalShot -configuration Release build
+```
+
+- **Debug** configuration runs *without* the sandbox, so the not-yet-migrated
+  legacy paths (region capture, screen recording via `/usr/sbin/screencapture`)
+  keep working during development.
+- **Release** configuration enables **App Sandbox** + user-selected file access
+  (`LocalShot.entitlements`) — the Mac App Store requirement. Under the sandbox,
+  **Capture Window** and **Capture Full Screen** work via **ScreenCaptureKit**
+  (macOS 14+); region capture and recording still need the legacy binary and are
+  pending migration, so don't ship a sandboxed build yet.
 
 The first capture triggers macOS's **Screen Recording** permission prompt
 (System Settings → Privacy & Security → Screen Recording → enable LocalShot,
@@ -52,7 +69,10 @@ No matches. (The only `http` string in this repo is the XML doctype inside
 ## Project layout
 
 - `LocalShot.swift` — the whole app: a single-file Swift/AppKit program
-- `build.sh` — compiles it into `LocalShot.app` (ad-hoc signed)
+- `main.swift` — the executable entry point (works for both swiftc and Xcode)
+- `build.sh` — compiles it into `LocalShot.app` (ad-hoc signed, no sandbox)
+- `LocalShot.xcodeproj` + `LocalShot.entitlements` — the Mac App Store track;
+  Debug = unsandboxed (legacy paths still work), Release = App Sandbox
 - `make_icon.swift` — the app icon, drawn in pure CoreGraphics; `AppIcon.icns`
   is the generated artifact used by the build
 

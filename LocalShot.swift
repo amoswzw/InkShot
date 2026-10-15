@@ -7,6 +7,7 @@ import CoreImage
 import Carbon.HIToolbox
 import UniformTypeIdentifiers
 import ServiceManagement
+import ScreenCaptureKit
 
 // MARK: - Model
 
@@ -1847,6 +1848,150 @@ final class ShelfController: NSObject {
     }
 }
 
+// MARK: - ScreenCaptureKit window picker (macOS 14+)
+
+/// Full-screen translucent overlay that highlights the window under the cursor
+/// (rects from `SCShareableContent`) — the sandbox-friendly replacement for
+/// `screencapture -i -w`. Click picks, Esc or an empty-area click cancels.
+@available(macOS 14.0, *)
+final class WindowPickerController: NSObject {
+    static let shared = WindowPickerController()
+    private var overlays: [OverlayWindow] = []
+    private var candidates: [(window: SCWindow, rect: NSRect)] = []
+    private var onPick: ((SCWindow) -> Void)?
+    private var onCancel: (() -> Void)?
+    private var hovered: NSRect?
+    fileprivate var hoveredRect: NSRect? { hovered }
+
+    func begin(content: SCShareableContent, onPick: @escaping (SCWindow) -> Void, onCancel: @escaping () -> Void) {
+        finish()   // in case one is already up
+        let ours = Bundle.main.bundleIdentifier
+        candidates = content.windows.compactMap { w in
+            // Real app windows only: skip our own and tiny/system frames.
+            guard w.owningApplication?.bundleIdentifier != ours,
+                  w.frame.width > 40, w.frame.height > 40,
+                  let (display, screen) = Self.display(for: w, in: content) else { return nil }
+            // SCK space is top-left origin per display; AppKit is bottom-left global.
+            let y = screen.frame.maxY - (w.frame.maxY - display.frame.minY)
+            let rect = NSRect(x: screen.frame.minX + w.frame.minX - display.frame.minX, y: y,
+                              width: w.frame.width, height: w.frame.height)
+            return (w, rect)
+        }
+        guard !candidates.isEmpty else { onCancel(); return }
+        self.onPick = onPick
+        self.onCancel = onCancel
+        NSApp.activate(ignoringOtherApps: true)
+        for screen in NSScreen.screens {
+            let overlay = OverlayWindow(screen: screen, picker: self)
+            overlays.append(overlay)
+            overlay.orderFrontRegardless()
+        }
+        // Make the overlay under the cursor key so Esc works.
+        let mouse = NSEvent.mouseLocation
+        (overlays.first { $0.frame.contains(mouse) } ?? overlays.first)?.makeKeyAndOrderFront(nil)
+    }
+
+    /// The SCDisplay/NSScreen pair whose display contains the window's center.
+    private static func display(for w: SCWindow, in content: SCShareableContent) -> (SCDisplay, NSScreen)? {
+        let mid = CGPoint(x: w.frame.midX, y: w.frame.midY)
+        guard let d = content.displays.first(where: { $0.frame.contains(mid) }) else { return nil }
+        for s in NSScreen.screens
+        where abs(d.frame.width - s.frame.width) < 2 && abs(d.frame.height - s.frame.height) < 2 {
+            return (d, s)
+        }
+        return nil
+    }
+
+    fileprivate func hover(at point: NSPoint) {
+        // Prefer the smallest window containing the cursor: the topmost one.
+        let rect = candidates.filter { $0.rect.contains(point) }
+            .min { $0.rect.width * $0.rect.height < $1.rect.width * $1.rect.height }?.rect
+        if rect != hovered { hovered = rect; overlays.forEach { $0.contentViewController?.view.needsDisplay = true } }
+    }
+
+    fileprivate func pick(at point: NSPoint) {
+        if let c = candidates.filter({ $0.rect.contains(point) })
+            .min(by: { $0.rect.width * $0.rect.height < $1.rect.width * $1.rect.height }) {
+            let window = c.window
+            finish()
+            onPick?(window)
+        } else {
+            cancel()
+        }
+    }
+
+    fileprivate func cancel() {
+        finish()
+        onCancel?()
+    }
+
+    private func finish() {
+        overlays.forEach { $0.orderOut(nil) }
+        overlays.removeAll()
+        candidates.removeAll()
+        hovered = nil
+        onPick = nil
+        onCancel = nil
+    }
+}
+
+@available(macOS 14.0, *)
+private final class OverlayWindow: NSWindow {
+    override var canBecomeKey: Bool { true }
+    private weak var picker: WindowPickerController?
+
+    init(screen: NSScreen, picker: WindowPickerController) {
+        super.init(contentRect: screen.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+        self.picker = picker
+        isOpaque = false
+        backgroundColor = .clear
+        hasShadow = false
+        level = .screenSaver
+        ignoresMouseEvents = false
+        acceptsMouseMovedEvents = true
+        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        contentView = OverlayView(picker: picker)
+    }
+
+    override func keyDown(with event: NSEvent) {
+        if event.keyCode == 53 { picker?.cancel() }   // Esc
+    }
+}
+
+@available(macOS 14.0, *)
+private final class OverlayView: NSView {
+    private weak var picker: WindowPickerController?
+
+    init(picker: WindowPickerController) {
+        self.picker = picker
+        super.init(frame: .zero)
+    }
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func draw(_ dirtyRect: NSRect) {
+        NSColor.black.withAlphaComponent(0.18).setFill()
+        bounds.fill()
+        guard let picker, let rect = picker.hoveredRect else { return }
+        let local = convert(rect, from: nil)   // nil = global screen coordinates
+        NSColor.controlAccentColor.withAlphaComponent(0.18).setFill()
+        local.fill(using: .sourceOver)
+        let path = NSBezierPath(rect: local.insetBy(dx: 1, dy: 1))
+        path.lineWidth = 2
+        NSColor.controlAccentColor.setStroke()
+        path.stroke()
+    }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        trackingAreas.forEach(removeTrackingArea)
+        addTrackingArea(NSTrackingArea(rect: bounds,
+            options: [.mouseMoved, .activeAlways, .inVisibleRect], owner: self))
+    }
+    override func mouseMoved(with event: NSEvent) { picker?.hover(at: NSEvent.mouseLocation) }
+    override func mouseDown(with event: NSEvent) { picker?.pick(at: NSEvent.mouseLocation) }
+    override func resetCursorRects() { addCursorRect(bounds, cursor: .crosshair) }
+}
+
 // MARK: - App
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -1979,16 +2124,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 let img = NSImage(size: pixelSize)
                 img.addRepresentation(NSBitmapImageRep(cgImage: cg))
                 try? FileManager.default.removeItem(atPath: tmp)
-                // Straight to the clipboard and history; the thumbnail offers a quick edit.
-                self.copyToPasteboard(img)
-                HistoryStore.shared.add(img, edited: false)
-                if Settings.shared.autoShowShelf {
-                    // The shelf's newest item is the capture, so no separate thumbnail.
-                    ShelfController.shared.show(flashNewest: true)
-                } else {
-                    ShelfController.shared.refreshIfVisible()
-                    ThumbnailController.show(image: img) { [weak self] in self?.openEditor(img, pixelSize) }
-                }
+                self.handleCapturedImage(img, pixelSize: pixelSize)
             }
         } else {
             let dest = s.saveDirectory.appendingPathComponent(timestampName(ext: fmt))
@@ -1997,6 +2133,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     NSWorkspace.shared.activateFileViewerSelecting([dest])
                 }
             }
+        }
+    }
+
+    // Shared post-capture flow for the ScreenCaptureKit and legacy paths alike.
+    private func handleCapturedImage(_ img: NSImage, pixelSize: NSSize) {
+        // Straight to the clipboard and history; the thumbnail offers a quick edit.
+        copyToPasteboard(img)
+        HistoryStore.shared.add(img, edited: false)
+        if Settings.shared.autoShowShelf {
+            // The shelf's newest item is the capture, so no separate thumbnail.
+            ShelfController.shared.show(flashNewest: true)
+        } else {
+            ShelfController.shared.refreshIfVisible()
+            ThumbnailController.show(image: img) { [weak self] in self?.openEditor(img, pixelSize) }
         }
     }
 
@@ -2016,8 +2166,96 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func captureRegion() { capture(["-i"]) }
-    @objc func captureWindow() { capture(["-i", "-w", "-o"]) }   // window mode, no drop shadow
-    @objc func captureFull()   { capture([], delay: 0.4) }       // wait for the menu to close
+
+    // Window & full-screen capture prefer ScreenCaptureKit (sandbox-friendly,
+    // macOS 14+): no child process, works under App Sandbox. The legacy
+    // `screencapture` binary remains as the pre-14 / no-permission fallback.
+    @objc func captureWindow() {
+        if #available(macOS 14.0, *), CGPreflightScreenCaptureAccess() {
+            Task { [weak self] in
+                guard let content = try? await SCShareableContent.excludingDesktopWindows(true, onScreenWindowsOnly: true),
+                      let self else { return }
+                WindowPickerController.shared.begin(content: content,
+                    onPick: { [weak self] window in
+                        self?.sckCapture(filter: SCContentFilter(desktopIndependentWindow: window))
+                    },
+                    onCancel: {})
+            }
+        } else {
+            capture(["-i", "-w", "-o"])   // window mode, no drop shadow
+        }
+    }
+
+    @objc func captureFull() {
+        if #available(macOS 14.0, *), CGPreflightScreenCaptureAccess() {
+            Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 400_000_000)   // let the menu close
+                guard let content = try? await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false),
+                      let self, let display = Self.mainDisplay(in: content) else { return }
+                self.sckCapture(filter: SCContentFilter(display: display, excludingWindows: []))
+            }
+        } else {
+            capture([], delay: 0.4)       // wait for the menu to close
+        }
+    }
+
+    /// SCDisplay for the main (menu-bar) screen, matched by point size.
+    @available(macOS 14.0, *)
+    private static func mainDisplay(in content: SCShareableContent) -> SCDisplay? {
+        guard let main = NSScreen.main ?? NSScreen.screens.first else { return content.displays.first }
+        return content.displays.first {
+            abs($0.frame.width - main.frame.width) < 2 && abs($0.frame.height - main.frame.height) < 2
+        } ?? content.displays.first
+    }
+
+    private func sckCapture(filter: SCContentFilter) {
+        Task { [weak self] in
+            let cfg = SCStreamConfiguration()
+            cfg.captureResolution = .best   // native pixel resolution (retina)
+            cfg.showsCursor = false
+            guard let cg = try? await SCScreenshotManager.captureImage(contentFilter: filter, configuration: cfg),
+                  let self else { return }
+            await MainActor.run { self.sckPostProcess(cg) }
+        }
+    }
+
+    private func sckPostProcess(_ cg: CGImage) {
+        let pixelSize = NSSize(width: cg.width, height: cg.height)
+        let img = NSImage(size: pixelSize)
+        img.addRepresentation(NSBitmapImageRep(cgImage: cg))
+        if Settings.shared.openEditorAfterCapture {
+            handleCapturedImage(img, pixelSize: pixelSize)
+        } else {
+            saveCGImage(cg)
+        }
+    }
+
+    /// Encodes to the chosen format and writes into the save folder; under the
+    /// sandbox (or any unwritable folder) falls back to a save panel.
+    private func saveCGImage(_ cg: CGImage) {
+        let fmt = Settings.shared.captureFormat
+        let utiString = fmt == "jpg" ? "public.jpeg" : fmt == "tiff" ? "public.tiff"
+                      : fmt == "pdf" ? "com.adobe.pdf" : "public.png"
+        let mdata = NSMutableData()
+        guard let dest = CGImageDestinationCreateWithData(mdata, utiString as CFString, 1, nil) else { return }
+        CGImageDestinationAddImage(dest, cg, nil)
+        CGImageDestinationFinalize(dest)
+        let data = mdata as Data
+        let file = Settings.shared.saveDirectory.appendingPathComponent(timestampName(ext: fmt))
+        do {
+            try data.write(to: file, options: .atomic)
+            NSWorkspace.shared.activateFileViewerSelecting([file])
+        } catch {
+            // Unwritable folder (e.g. sandboxed Desktop): let the user place it.
+            let panel = NSSavePanel()
+            panel.allowedContentTypes = [UTType(filenameExtension: fmt) ?? .png]
+            panel.nameFieldStringValue = timestampName(ext: fmt)
+            NSApp.activate(ignoringOtherApps: true)
+            if panel.runModal() == .OK, let url = panel.url {
+                try? data.write(to: url)
+            }
+        }
+    }
 
     // MARK: screen recording (screencapture -v; SIGINT finalizes the movie)
 
@@ -2105,8 +2343,4 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-let app = NSApplication.shared
-let delegate = AppDelegate()
-app.delegate = delegate
-app.setActivationPolicy(.accessory)   // menu-bar app, no Dock icon
-app.run()
+// Entry point: see main.swift (top-level bootstrap, shared by build.sh and Xcode).
