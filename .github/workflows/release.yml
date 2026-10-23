@@ -1,0 +1,190 @@
+name: Release
+
+# Every push to main that touches the app ships a new patch release (v1.0.0 → v1.0.1 …).
+# "Run workflow" bumps minor or major instead. The version comes from the latest v* tag,
+# so nothing has to be edited by hand; the build number is the run number, which only grows.
+on:
+  push:
+    branches: [main]
+    paths:
+      - Inkshot.swift
+      - main.swift
+      - Inkshot-Info.plist
+      - Inkshot.entitlements
+      - PrivacyInfo.xcprivacy
+      - Assets.xcassets/**
+      - AppIcon.icns
+      - Inkshot.xcodeproj/**
+      - packaging/**
+      - .github/workflows/release.yml
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version part to increase"
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-15
+    env:
+      APP_NAME: Inkshot
+      APPLE_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+    steps:
+      - name: Check signing secrets
+        id: secrets
+        shell: bash
+        run: |
+          missing=()
+          for name in APPLE_CERTIFICATE_P12_BASE64 APPLE_CERTIFICATE_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
+            [ -n "${!name}" ] || missing+=("$name")
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::notice::Release skipped: missing secrets ${missing[*]}. Inkshot only ships signed and notarized builds."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          fetch-depth: 0   # tags, to find the last version
+
+      - name: Next version
+        id: version
+        if: steps.secrets.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          LAST="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
+          BUMP="${{ inputs.bump || 'patch' }}"
+          if [ -z "$LAST" ]; then
+            NEXT="1.0.0"                       # first release
+          else
+            IFS=. read -r MA MI PA <<< "${LAST#v}"
+            case "$BUMP" in
+              major) NEXT="$((MA + 1)).0.0" ;;
+              minor) NEXT="$MA.$((MI + 1)).0" ;;
+              *)     NEXT="$MA.$MI.$((PA + 1))" ;;
+            esac
+          fi
+          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "tag=v$NEXT" >> "$GITHUB_OUTPUT"
+          echo "build=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "Releasing v$NEXT (build ${{ github.run_number }}) after ${LAST:-nothing}"
+
+      - name: Import Developer ID certificate
+        if: steps.secrets.outputs.ready == 'true'
+        env:
+          KEYCHAIN_PASSWORD: ${{ github.run_id }}-${{ github.run_attempt }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          CERT="$RUNNER_TEMP/developer-id.p12"
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          echo "$APPLE_CERTIFICATE_P12_BASE64" | base64 --decode > "$CERT"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$CERT" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security find-identity -v -p codesigning "$KEYCHAIN" | grep -q "Developer ID Application" \
+            || { echo "No Developer ID Application identity in the certificate." >&2; exit 1; }
+
+      - name: Build and export
+        if: steps.secrets.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          /usr/libexec/PlistBuddy \
+            -c "Set :CFBundleShortVersionString ${{ steps.version.outputs.version }}" \
+            -c "Set :CFBundleVersion ${{ steps.version.outputs.build }}" Inkshot-Info.plist
+          # CI has no Apple Development certificate, so sign the archive with Developer ID directly.
+          xcodebuild -project Inkshot.xcodeproj -scheme Inkshot -configuration Release \
+            -archivePath build/Inkshot.xcarchive archive \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Developer ID Application" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" PROVISIONING_PROFILE_SPECIFIER="" \
+            OTHER_CODE_SIGN_FLAGS=--timestamp
+          xcodebuild -exportArchive -archivePath build/Inkshot.xcarchive -exportPath build/export \
+            -exportOptionsPlist packaging/ExportOptions-DeveloperID.plist
+          codesign --verify --deep --strict --verbose=2 build/export/Inkshot.app
+
+      - name: Notarize and staple
+        id: package
+        if: steps.secrets.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="build/Inkshot-${{ steps.version.outputs.version }}.zip"
+          ditto -c -k --keepParent build/export/Inkshot.app "$ZIP"
+          xcrun notarytool submit "$ZIP" --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+          xcrun stapler staple build/export/Inkshot.app
+          rm "$ZIP"
+          ditto -c -k --keepParent build/export/Inkshot.app "$ZIP"   # re-zip with the ticket
+          spctl --assess --type execute --verbose build/export/Inkshot.app
+          shasum -a 256 "$ZIP" > "$ZIP.sha256"
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(cut -d' ' -f1 "$ZIP.sha256")" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub release
+        if: steps.secrets.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.version.outputs.tag }}"
+          NOTES="$(mktemp)"
+          cat > "$NOTES" <<EOF
+          Inkshot ${{ steps.version.outputs.version }} (build ${{ steps.version.outputs.build }})
+
+          Signed with Developer ID and notarized by Apple.
+
+          Install with Homebrew:
+
+              brew install --cask amoswzw/tap/inkshot
+
+          Or download the zip, unzip it, and move Inkshot.app to Applications.
+          SHA-256 is attached as a separate .sha256 file.
+          EOF
+          gh release create "$TAG" "${{ steps.package.outputs.zip }}" "${{ steps.package.outputs.zip }}.sha256" \
+            --target "$GITHUB_SHA" --title "Inkshot $TAG" --notes-file "$NOTES"
+
+      - name: Update Homebrew tap
+        if: steps.secrets.outputs.ready == 'true' && env.HOMEBREW_TAP_TOKEN != ''
+        env:
+          GH_TOKEN: ${{ env.HOMEBREW_TAP_TOKEN }}
+          TAP_REPO: amoswzw/homebrew-tap
+          CASK_PATH: Casks/inkshot.rb
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          SHA256="${{ steps.package.outputs.sha256 }}"
+          sed -E -e "s/^(  version )\"[^\"]+\"/\1\"${VERSION}\"/" \
+                 -e "s/^(  sha256 )\"[^\"]+\"/\1\"${SHA256}\"/" \
+                 packaging/homebrew/inkshot.rb > "$RUNNER_TEMP/inkshot.rb"
+          # Create the cask the first time, update it after (the API needs the old blob sha).
+          BLOB_SHA="$(gh api "repos/${TAP_REPO}/contents/${CASK_PATH}" --jq .sha 2>/dev/null || true)"
+          ARGS=(-f message="inkshot ${VERSION}" -f content="$(base64 < "$RUNNER_TEMP/inkshot.rb" | tr -d '\n')")
+          [ -n "$BLOB_SHA" ] && ARGS+=(-f sha="$BLOB_SHA")
+          gh api --method PUT "repos/${TAP_REPO}/contents/${CASK_PATH}" "${ARGS[@]}" > /dev/null
+          echo "Tap updated to inkshot ${VERSION}"
