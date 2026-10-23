@@ -682,7 +682,7 @@ final class CanvasView: NSView {
         if op.tool == .blur {
             filter = CIFilter(name: "CIGaussianBlur", parameters: [
                 kCIInputImageKey: ci.clampedToExtent(),
-                kCIInputRadiusKey: max(6, min(pr.width, pr.height) / 12)])
+                kCIInputRadiusKey: min(60, max(12, min(pr.width, pr.height) / 3))])
         } else {
             filter = CIFilter(name: "CIPixellate", parameters: [
                 kCIInputImageKey: ci,
