@@ -484,6 +484,7 @@ final class CanvasView: NSView {
         baseImage.cgImage(forProposedRect: nil, context: nil, hints: nil).map { CIImage(cgImage: $0) }
     private var textField: NSTextField?
     private var pendingTextOrigin: CGPoint?
+    private var editingTextIndex: Int?
     // Pending crop (Crop tool). cropHandle: 0–7 resize, 8 move, nil draws a new rect.
     private var cropRect: CGRect? { didSet { if cropRect != oldValue { onCropChange?(cropRect) } } }
     private var cropHandle: Int?
@@ -511,7 +512,7 @@ final class CanvasView: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         baseImage.draw(in: bounds)
-        for op in ops { drawOp(op) }
+        for (i, op) in ops.enumerated() where i != editingTextIndex { drawOp(op) }
         if let d = draft { drawOp(d) }
         if let i = selected, i < ops.count {
             let inset = 6 / viewScale
@@ -700,6 +701,9 @@ final class CanvasView: NSView {
         window?.makeFirstResponder(self)
         let p = convert(event.locationInWindow, from: nil)
         if currentTool == .crop { cropDown(at: p, clickCount: event.clickCount); return }
+        if event.clickCount == 2, let i = markIndex(at: p), ops[i].tool == .text {
+            editText(at: i); return
+        }
         // The selected mark stays editable in any tool: resize by its handles,
         // move by its body. No need to switch to the Select tool between edits.
         if let i = selected, i < ops.count {
@@ -1070,13 +1074,37 @@ final class CanvasView: NSView {
         pendingTextOrigin = p
     }
 
+    private func editText(at i: Int) {
+        let op = ops[i]
+        let sz = (op.text as NSString).size(withAttributes: [.font: inkFont(op.fontSize)])
+        beginText(at: op.origin)
+        guard let tf = textField else { return }
+        // Line the field's text up with the drawn mark so it doesn't jump.
+        tf.frame = NSRect(x: op.origin.x - 4, y: op.origin.y - 4,
+                          width: max(240, sz.width + 40), height: sz.height + 8)
+        tf.font = inkFont(op.fontSize)
+        tf.textColor = op.color
+        tf.stringValue = op.text
+        tf.currentEditor()?.selectAll(nil)
+        editingTextIndex = i
+        selected = nil; needsDisplay = true
+    }
+
     @objc private func textCommitted() { commitText() }
 
     private func commitText() {
         guard let tf = textField, let origin = pendingTextOrigin else { return }
         let str = tf.stringValue
         tf.removeFromSuperview(); textField = nil; pendingTextOrigin = nil
-        if !str.trimmingCharacters(in: .whitespaces).isEmpty {
+        let empty = str.trimmingCharacters(in: .whitespaces).isEmpty
+        if let i = editingTextIndex {
+            editingTextIndex = nil
+            if i < ops.count, ops[i].text != str {
+                pushHistory()
+                if empty { ops.remove(at: i) } else { ops[i].text = str; selected = i }
+                redoStack.removeAll()
+            } else if i < ops.count { selected = i }
+        } else if !empty {
             pushHistory()
             var op = Op(tool: .text, color: currentColor, width: currentWidth)
             op.text = str; op.origin = origin; op.fontSize = currentFontSize
