@@ -60,7 +60,7 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         if: steps.secrets.outputs.ready == 'true'
         with:
           fetch-depth: 0   # tags, to find the last version
