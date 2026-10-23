@@ -10,7 +10,7 @@ cask "inkshot" do
   desc "Private, offline screenshots, annotation and screen recording"
   homepage "https://github.com/amoswzw/Inkshot"
 
-  depends_on macos: ">= :sonoma"
+  depends_on macos: :sonoma
 
   app "Inkshot.app"
 

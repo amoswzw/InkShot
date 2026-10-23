@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Mac App Store build: sandboxed Release archive, automatic signing.
+	     destination "export" writes the .pkg; "upload" sends it to App Store Connect. -->
+	<key>method</key><string>app-store-connect</string>
+	<key>teamID</key><string>9KYF82HZM5</string>
+	<key>signingStyle</key><string>automatic</string>
+	<key>destination</key><string>export</string>
+</dict>
+</plist>
