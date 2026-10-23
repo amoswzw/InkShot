@@ -7,18 +7,22 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A100000000000000000000001 /* LocalShot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000000001 /* LocalShot.swift */; };
+		A100000000000000000000001 /* Inkshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000000001 /* Inkshot.swift */; };
 		A100000000000000000000002 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = A200000000000000000000004 /* AppIcon.icns */; };
 		A100000000000000000000003 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000000005 /* main.swift */; };
+		A100000000000000000000004 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A200000000000000000000007 /* PrivacyInfo.xcprivacy */; };
+		A100000000000000000000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A200000000000000000000008 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A200000000000000000000001 /* LocalShot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalShot.swift; sourceTree = "<group>"; };
-		A200000000000000000000002 /* LocalShot-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "LocalShot-Info.plist"; sourceTree = "<group>"; };
-		A200000000000000000000003 /* LocalShot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LocalShot.entitlements; sourceTree = "<group>"; };
+		A200000000000000000000001 /* Inkshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Inkshot.swift; sourceTree = "<group>"; };
+		A200000000000000000000002 /* Inkshot-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Inkshot-Info.plist"; sourceTree = "<group>"; };
+		A200000000000000000000003 /* Inkshot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Inkshot.entitlements; sourceTree = "<group>"; };
 		A200000000000000000000004 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		A200000000000000000000005 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		A200000000000000000000006 /* LocalShot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LocalShot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A200000000000000000000006 /* Inkshot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Inkshot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A200000000000000000000007 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		A200000000000000000000008 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -26,10 +30,12 @@
 			isa = PBXGroup;
 			children = (
 				A200000000000000000000005 /* main.swift */,
-				A200000000000000000000001 /* LocalShot.swift */,
-				A200000000000000000000002 /* LocalShot-Info.plist */,
-				A200000000000000000000003 /* LocalShot.entitlements */,
-				A200000000000000000000000004 /* AppIcon.icns */,
+				A200000000000000000000001 /* Inkshot.swift */,
+				A200000000000000000000002 /* Inkshot-Info.plist */,
+				A200000000000000000000003 /* Inkshot.entitlements */,
+				A200000000000000000000004 /* AppIcon.icns */,
+				A200000000000000000000008 /* Assets.xcassets */,
+				A200000000000000000000007 /* PrivacyInfo.xcprivacy */,
 				A300000000000000000000002 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -37,7 +43,7 @@
 		A300000000000000000000002 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A200000000000000000000006 /* LocalShot.app */,
+				A200000000000000000000006 /* Inkshot.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -45,18 +51,18 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A400000000000000000000001 /* LocalShot */ = {
+		A400000000000000000000001 /* Inkshot */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A500000000000000000000002 /* Build configuration list for PBXNativeTarget "LocalShot" */;
+			buildConfigurationList = A500000000000000000000002 /* Build configuration list for PBXNativeTarget "Inkshot" */;
 			buildPhases = (
 				A600000000000000000000001 /* Sources */,
 				A600000000000000000000002 /* Resources */,
 			);
 			dependencies = (
 			);
-			name = LocalShot;
-			productName = LocalShot;
-			productReference = A200000000000000000000006 /* LocalShot.app */;
+			name = Inkshot;
+			productName = Inkshot;
+			productReference = A200000000000000000000006 /* Inkshot.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -74,7 +80,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A500000000000000000000001 /* Build configuration list for PBXProject "LocalShot" */;
+			buildConfigurationList = A500000000000000000000001 /* Build configuration list for PBXProject "Inkshot" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -87,7 +93,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A400000000000000000000001 /* LocalShot */,
+				A400000000000000000000001 /* Inkshot */,
 			);
 		};
 /* End PBXProject section */
@@ -98,6 +104,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A100000000000000000000002 /* AppIcon.icns in Resources */,
+				A100000000000000000000005 /* Assets.xcassets in Resources */,
+				A100000000000000000000004 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -109,7 +117,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A100000000000000000000003 /* main.swift in Sources */,
-				A100000000000000000000001 /* LocalShot.swift in Sources */,
+				A100000000000000000000001 /* Inkshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +127,7 @@
 		A800000000000000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				SDKROOT = macosx;
 			};
@@ -127,6 +136,7 @@
 		A800000000000000000000002 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				SDKROOT = macosx;
 			};
@@ -135,24 +145,23 @@
 		A800000000000000000000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				/* Debug runs WITHOUT the sandbox so the not-yet-migrated legacy
-				   paths (region capture, recording via /usr/sbin/screencapture)
-				   keep working during development. */
+				/* Debug runs WITHOUT the sandbox; Release adds App Sandbox. */
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 9KYF82HZM5;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "LocalShot-Info.plist";
+				INFOPLIST_FILE = "Inkshot-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1;
-				PRODUCT_BUNDLE_IDENTIFIER = local.localshot;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.amosw.inkshot;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -162,23 +171,23 @@
 		A800000000000000000000004 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				/* Release = the Mac App Store reality: sandboxed, so only the
-				   ScreenCaptureKit paths work until migration is finished. */
-				CODE_SIGN_ENTITLEMENTS = LocalShot.entitlements;
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Manual;
+				/* Release = the Mac App Store build: sandboxed, automatically
+				   signed by the team (Apple Distribution when archived). */
+				CODE_SIGN_ENTITLEMENTS = Inkshot.entitlements;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 9KYF82HZM5;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "LocalShot-Info.plist";
+				INFOPLIST_FILE = "Inkshot-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1;
-				PRODUCT_BUNDLE_IDENTIFIER = local.localshot;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.amosw.inkshot;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -188,7 +197,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A500000000000000000000001 /* Build configuration list for PBXProject "LocalShot" */ = {
+		A500000000000000000000001 /* Build configuration list for PBXProject "Inkshot" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A800000000000000000000001 /* Debug */,
@@ -197,7 +206,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A500000000000000000000002 /* Build configuration list for PBXNativeTarget "LocalShot" */ = {
+		A500000000000000000000002 /* Build configuration list for PBXNativeTarget "Inkshot" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A800000000000000000000003 /* Debug */,

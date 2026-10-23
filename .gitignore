@@ -1,5 +1,5 @@
 # Build output
-LocalShot.app/
+Inkshot.app/
 
 # Xcode builds & user state
 xbuild/
@@ -14,3 +14,6 @@ AppIcon.iconset/
 
 # Logs
 *.log
+
+# Release output (./release.sh)
+dist/
