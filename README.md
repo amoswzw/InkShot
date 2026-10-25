@@ -6,6 +6,15 @@ A private, local-only **screenshot + annotation + screen-recording app for macOS
 It lives in the menu bar, and it contains **no networking code at all** — no
 telemetry, no accounts, no cloud. Your screen never leaves your Mac.
 
+## Screenshots
+
+<p>
+<img src="docs/screenshots/1-annotate.png" width="900" alt="Annotating a capture">
+<img src="docs/screenshots/2-redact.png" width="900" alt="Redacting with mosaic and blur">
+<img src="docs/screenshots/3-shelf.png" width="900" alt="The recent captures shelf">
+<img src="docs/screenshots/4-record.png" width="900" alt="Recording the screen">
+</p>
+
 ## Features
 
 - **Capture** — region (captured as soon as you release the mouse; a magnifier
