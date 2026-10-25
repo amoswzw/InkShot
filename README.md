@@ -9,10 +9,12 @@ telemetry, no accounts, no cloud. Your screen never leaves your Mac.
 ## Screenshots
 
 <p>
-<img src="docs/screenshots/1-annotate.png" width="900" alt="Annotating a capture">
-<img src="docs/screenshots/2-redact.png" width="900" alt="Redacting with mosaic and blur">
-<img src="docs/screenshots/3-shelf.png" width="900" alt="The recent captures shelf">
-<img src="docs/screenshots/4-record.png" width="900" alt="Recording the screen">
+<a href="docs/screenshots/1-annotate.png"><img src="docs/screenshots/1-annotate.png" width="49%" alt="Annotating a capture"></a>
+<a href="docs/screenshots/2-redact.png"><img src="docs/screenshots/2-redact.png" width="49%" alt="Redacting with mosaic and blur"></a>
+</p>
+<p>
+<a href="docs/screenshots/3-shelf.png"><img src="docs/screenshots/3-shelf.png" width="49%" alt="The recent captures shelf"></a>
+<a href="docs/screenshots/4-record.png"><img src="docs/screenshots/4-record.png" width="49%" alt="Recording the screen"></a>
 </p>
 
 ## Features
