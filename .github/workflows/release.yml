@@ -1,22 +1,11 @@
 name: Release
 
-# Every push to main that touches the app ships a new patch release (v1.0.0 → v1.0.1 …).
-# "Run workflow" bumps minor or major instead. The version comes from the latest v* tag,
-# so nothing has to be edited by hand; the build number is the run number, which only grows.
+# Releases happen on demand: "Run workflow" bumps the latest v* tag (patch, minor or major),
+# and pushing a v* tag releases exactly that version. Pushes to main only run CI (ci.yml).
+# The build number is the run number, which only grows.
 on:
   push:
-    branches: [main]
-    paths:
-      - Inkshot.swift
-      - main.swift
-      - Inkshot-Info.plist
-      - Inkshot.entitlements
-      - PrivacyInfo.xcprivacy
-      - Assets.xcassets/**
-      - AppIcon.icns
-      - Inkshot.xcodeproj/**
-      - packaging/**
-      - .github/workflows/release.yml
+    tags: ['v*.*.*']
   workflow_dispatch:
     inputs:
       bump:
@@ -71,18 +60,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          LAST="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
-          BUMP="${{ inputs.bump || 'patch' }}"
-          if [ -z "$LAST" ]; then
-            NEXT="1.0.0"                       # first release
+          if [ "${{ github.ref_type }}" = tag ]; then
+            NEXT="${GITHUB_REF_NAME#v}"
+            LAST="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | grep -vx "$GITHUB_REF_NAME" | head -n 1 || true)"
           else
-            IFS=. read -r MA MI PA <<< "${LAST#v}"
-            case "$BUMP" in
-              major) NEXT="$((MA + 1)).0.0" ;;
-              minor) NEXT="$MA.$((MI + 1)).0" ;;
-              *)     NEXT="$MA.$MI.$((PA + 1))" ;;
-            esac
+            LAST="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
+            BUMP="${{ inputs.bump || 'patch' }}"
+            if [ -z "$LAST" ]; then
+              NEXT="1.0.0"                     # first release
+            else
+              IFS=. read -r MA MI PA <<< "${LAST#v}"
+              case "$BUMP" in
+                major) NEXT="$((MA + 1)).0.0" ;;
+                minor) NEXT="$MA.$((MI + 1)).0" ;;
+                *)     NEXT="$MA.$MI.$((PA + 1))" ;;
+              esac
+            fi
           fi
+          echo "last=$LAST" >> "$GITHUB_OUTPUT"
           echo "version=$NEXT" >> "$GITHUB_OUTPUT"
           echo "tag=v$NEXT" >> "$GITHUB_OUTPUT"
           echo "build=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
@@ -165,6 +160,13 @@ jobs:
           Or download the zip, unzip it, and move Inkshot.app to Applications.
           SHA-256 is attached as a separate .sha256 file.
           EOF
+          {
+            echo
+            echo "Changes:"
+            echo
+            LAST="${{ steps.version.outputs.last }}"
+            git log --no-merges --pretty='- %s' ${LAST:+"$LAST..HEAD"}
+          } >> "$NOTES"
           gh release create "$TAG" "${{ steps.package.outputs.zip }}" "${{ steps.package.outputs.zip }}.sha256" \
             --target "$GITHUB_SHA" --title "Inkshot $TAG" --notes-file "$NOTES"
 

@@ -5,10 +5,10 @@ cask "inkshot" do
   version "1.0.0"
   sha256 "REPLACE_WITH_SHA256_FROM_RELEASE_SH"
 
-  url "https://github.com/amoswzw/Inkshot/releases/download/v#{version}/Inkshot-#{version}.zip"
+  url "https://github.com/amoswzw/InkShot/releases/download/v#{version}/Inkshot-#{version}.zip"
   name "Inkshot"
   desc "Private, offline screenshots, annotation and screen recording"
-  homepage "https://github.com/amoswzw/Inkshot"
+  homepage "https://github.com/amoswzw/InkShot"
 
   depends_on macos: :sonoma
 

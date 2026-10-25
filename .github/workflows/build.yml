@@ -5,5 +5,12 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
+      - name: No networking
+        run: |
+          # Nothing may leave the machine: no networking code anywhere.
+          if grep -niE 'URLSession|NSURLConnection|Socket|CFStream|http|fetch' Inkshot.swift main.swift; then
+            echo "::error::Networking code found"
+            exit 1
+          fi
       - name: Build Inkshot.app
         run: ./build.sh

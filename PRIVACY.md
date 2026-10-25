@@ -17,4 +17,4 @@ record or type ever leaves your Mac.
 - **No third parties.** Inkshot shares nothing with anyone, because it has nothing
   to share.
 
-Questions: open an issue at https://github.com/amoswzw/Inkshot/issues.
+Questions: open an issue at https://github.com/amoswzw/InkShot/issues.
