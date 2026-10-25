@@ -24,6 +24,8 @@ concurrency:
 jobs:
   release:
     runs-on: macos-15
+    # Its secrets live only in this environment, which waits for the owner's approval.
+    environment: release
     env:
       APP_NAME: Inkshot
       APPLE_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
@@ -49,7 +51,7 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         if: steps.secrets.outputs.ready == 'true'
         with:
           fetch-depth: 0   # tags, to find the last version
