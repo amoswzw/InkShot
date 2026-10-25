@@ -4,7 +4,7 @@ jobs:
   build:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: No networking
         run: |
           # Nothing may leave the machine: no networking code anywhere.
